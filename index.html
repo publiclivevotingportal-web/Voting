@@ -25,11 +25,11 @@
 
     <!-- TOP HEADER -->
     <header class="bg-slate-900 text-white shadow-lg sticky top-0 z-50">
-        <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-2">
             <div class="flex items-center space-x-3">
                 <div class="bg-blue-600 text-white p-2 rounded-lg font-bold text-xl tracking-wider">VOTE</div>
                 <div>
-                    <h1 class="font-bold text-lg leading-tight">Public Opinion & Voting Portal</h1>
+                    <h1 class="font-bold text-base sm:text-lg leading-tight">Public Opinion & Voting Portal</h1>
                     <p class="text-xs text-slate-400 flex items-center gap-1">
                         <span class="w-2 h-2 rounded-full bg-emerald-500 live-dot"></span>
                         LIVE TIME: <span id="liveClock" class="font-mono text-emerald-400">Loading...</span>
@@ -38,18 +38,15 @@
             </div>
 
             <!-- Header Actions -->
-            <div class="flex items-center space-x-2 md:space-x-3">
-                <!-- Check Vote Status Button -->
-                <button onclick="openReceiptCheckModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs md:text-sm px-3 py-2 rounded-md border border-slate-700 flex items-center gap-1.5 font-medium shadow-sm">
-                    <i data-lucide="file-search" class="w-4 h-4 text-blue-400"></i> Check Vote Status
+            <div class="flex items-center space-x-2">
+                <button onclick="openReceiptCheckModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs px-2.5 py-2 rounded-md border border-slate-700 flex items-center gap-1 font-medium shadow-sm">
+                    <i data-lucide="file-search" class="w-4 h-4 text-blue-400"></i> Check Status
                 </button>
-                <!-- User Feedback / Opinion Button -->
-                <button onclick="openFeedbackModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs md:text-sm px-3 py-2 rounded-md font-medium shadow flex items-center gap-1">
-                    <i data-lucide="message-square-plus" class="w-4 h-4"></i> Feedback / Opinion
+                <button onclick="openFeedbackModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-2.5 py-2 rounded-md font-medium shadow flex items-center gap-1">
+                    <i data-lucide="message-square-plus" class="w-4 h-4"></i> Feedback
                 </button>
-                <!-- Admin Menu -->
                 <button onclick="openAdminModal()" class="p-2 hover:bg-slate-800 rounded-lg text-slate-300" title="Admin Menu">
-                    <i data-lucide="menu" class="w-6 h-6"></i>
+                    <i data-lucide="menu" class="w-5 h-5"></i>
                 </button>
             </div>
         </div>
@@ -116,7 +113,6 @@
                 </button>
             </form>
 
-            <!-- LOGGED IN ADMIN DASHBOARD MENU -->
             <div id="adminDashboard" class="hidden space-y-3">
                 <p class="text-xs text-emerald-600 font-bold bg-emerald-50 p-2 rounded border border-emerald-200 text-center">
                     ✓ Authenticated Admin Session Active
@@ -141,7 +137,7 @@
         </div>
     </div>
 
-    <!-- MODAL: USER FEEDBACK / OPINION -->
+    <!-- MODAL: USER FEEDBACK -->
     <div id="feedbackModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
         <div class="bg-white w-full max-w-lg rounded-xl shadow-2xl p-6 relative my-8">
             <button onclick="closeModal('feedbackModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
@@ -198,9 +194,7 @@
                 <span id="fbTotalBadge" class="bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-full">Total: 0</span>
             </div>
 
-            <div id="adminFeedbackList" class="overflow-y-auto space-y-4 pr-2 flex-grow">
-                <!-- Dynamic Feedbacks Listing -->
-            </div>
+            <div id="adminFeedbackList" class="overflow-y-auto space-y-4 pr-2 flex-grow"></div>
         </div>
     </div>
 
@@ -226,7 +220,6 @@
                     </select>
                 </div>
 
-                <!-- OPTIONS CONTAINER -->
                 <div id="optionsContainer" class="space-y-2 border p-3 rounded-lg bg-slate-50">
                     <label class="block text-xs font-semibold text-slate-600">Define Choice Options</label>
                     <div id="optionsList" class="space-y-2">
@@ -256,11 +249,8 @@
 
             <form onsubmit="submitVote(event)" class="space-y-4">
                 <input type="hidden" id="pvSessionId">
-
-                <!-- Dynamic Input Panel -->
                 <div id="pvInputPanel" class="space-y-2 border-y py-3 my-2"></div>
 
-                <!-- User Personal Info -->
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Your Full Name</label>
                     <input type="text" id="voterName" required class="w-full border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Enter your complete name">
@@ -287,7 +277,6 @@
                 <i data-lucide="x" class="w-5 h-5"></i>
             </button>
 
-            <!-- Printable Receipt Container -->
             <div id="receiptCard" class="bg-white p-6 border-2 border-slate-200 rounded-lg space-y-4 text-slate-800">
                 <div class="border-b pb-3 text-center">
                     <div class="text-xs font-bold text-blue-600 uppercase tracking-widest">OFFICIAL VOTING RECEIPT</div>
@@ -342,9 +331,7 @@
                 <i data-lucide="bar-chart" class="text-purple-600"></i> Voting Session Records & Analytics
             </h3>
 
-            <div id="resultsList" class="overflow-y-auto space-y-6 pr-2 flex-grow">
-                <!-- Dynamic Results Cards -->
-            </div>
+            <div id="resultsList" class="overflow-y-auto space-y-6 pr-2 flex-grow"></div>
         </div>
     </div>
 
@@ -366,7 +353,6 @@
                 </button>
             </div>
 
-            <!-- Display Results -->
             <div id="rankDisplayArea" class="mt-4 border-t pt-4 hidden space-y-3"></div>
         </div>
     </div>
@@ -394,16 +380,21 @@
 
     <!-- JAVASCRIPT & SUPABASE INTEGRATION -->
     <script>
-        // SUPABASE CREDENTIALS INTEGRATION
         const SUPABASE_URL = "https://zxqxykntmndfkvzhathf.supabase.co";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp4cXh5a250bW5kZmt2emhhdGhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA2MzYxOTEsImV4cCI6MjEwNjIxMjE5MX0.3d7Mf2kH7UxirCA9wvqnho-XxsowGZTAw7DZxxyEoUg";
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        let supabase = null;
+        try {
+            if(window.supabase) {
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            }
+        } catch(e) {
+            console.error("Supabase init error:", e);
+        }
 
-        // ADMIN CREDENTIALS
         const ADMIN_USER = "VOTE";
         const ADMIN_PASS = "VOTECJP#KERALAM";
 
-        // INDIA STATES & UNION TERRITORIES
         const INDIAN_REGIONS = [
             "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", 
             "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Keralam", "Madhya Pradesh", 
@@ -413,31 +404,41 @@
             "Delhi (NCT)", "Jammu and Kashmir", "Ladakh", "Lakshadweep", "Puducherry"
         ];
 
-        // STATE MANAGEMENT
-        let state = {
-            isAdminLoggedIn: false,
-            sessions: [],
-            votes: [],
-            usedReceipts: [],
-            feedbacks: []
+        // DEFAULT INITIAL SESSION FOR INSTANT LOAD
+        const DEFAULT_SESSION = {
+            id: 'sess_default_1',
+            question: "Are you interested in Video Editing & Content Creation?",
+            type: "options",
+            options: ["Yes", "No"],
+            pinned: true,
+            order: 1,
+            dateAdded: new Date().toLocaleString('en-IN')
         };
 
-        // INITIALIZATION
-        window.addEventListener('DOMContentLoaded', async () => {
+        let state = {
+            isAdminLoggedIn: false,
+            sessions: JSON.parse(localStorage.getItem('portal_sessions')) || [DEFAULT_SESSION],
+            votes: JSON.parse(localStorage.getItem('portal_votes')) || [],
+            usedReceipts: JSON.parse(localStorage.getItem('portal_receipts')) || [],
+            feedbacks: JSON.parse(localStorage.getItem('portal_feedbacks')) || []
+        };
+
+        window.addEventListener('DOMContentLoaded', () => {
             initLiveClock();
             populateStatesDropdown();
-            await fetchSupabaseData();
-            renderSessions();
-            lucide.createIcons();
+            renderSessions(); // INSTANT RENDER FROM CACHE/DEFAULTS
+            
+            if (window.lucide) lucide.createIcons();
+            
+            // BACKGROUND ASYNC SYNC WITH SUPABASE
+            fetchSupabaseData();
         });
 
-        // LIVE REAL-TIME CLOCK
         function initLiveClock() {
             function update() {
-                const now = new Date();
                 const clock = document.getElementById('liveClock');
                 if(clock) {
-                    clock.textContent = now.toLocaleString('en-IN', { 
+                    clock.textContent = new Date().toLocaleString('en-IN', { 
                         timeZone: 'Asia/Kolkata',
                         dateStyle: 'medium',
                         timeStyle: 'medium'
@@ -448,41 +449,47 @@
             setInterval(update, 1000);
         }
 
-        // FETCH ALL DATA FROM SUPABASE DATABASE
         async function fetchSupabaseData() {
+            if(!supabase) return;
             try {
-                const [sRes, vRes, rRes, fRes] = await Promise.all([
+                // Fetch with a 3-second timeout
+                const fetchWithTimeout = (promise, ms = 3000) => {
+                    return Promise.race([
+                        promise,
+                        new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), ms))
+                    ]);
+                };
+
+                const [sRes, vRes, rRes, fRes] = await fetchWithTimeout(Promise.all([
                     supabase.from('sessions').select('*'),
                     supabase.from('votes').select('*'),
                     supabase.from('used_receipts').select('*'),
                     supabase.from('feedbacks').select('*')
-                ]);
+                ]));
 
-                if (sRes.data) state.sessions = sRes.data;
-                if (vRes.data) state.votes = vRes.data;
-                if (rRes.data) state.usedReceipts = rRes.data.map(r => r.code);
-                if (fRes.data) state.feedbacks = fRes.data;
-
-                // Add initial session if database is empty
-                if(state.sessions.length === 0) {
-                    const initSess = {
-                        id: 'sess_' + Date.now(),
-                        question: "Are you interested in Video Editing & Content Creation?",
-                        type: "options",
-                        options: ["Yes", "No"],
-                        pinned: true,
-                        order: 1,
-                        dateAdded: new Date().toLocaleString()
-                    };
-                    await supabase.from('sessions').insert([initSess]);
-                    state.sessions = [initSess];
+                if (sRes && sRes.data && sRes.data.length > 0) {
+                    state.sessions = sRes.data;
+                    localStorage.setItem('portal_sessions', JSON.stringify(state.sessions));
                 }
+                if (vRes && vRes.data) {
+                    state.votes = vRes.data;
+                    localStorage.setItem('portal_votes', JSON.stringify(state.votes));
+                }
+                if (rRes && rRes.data) {
+                    state.usedReceipts = rRes.data.map(r => r.code);
+                    localStorage.setItem('portal_receipts', JSON.stringify(state.usedReceipts));
+                }
+                if (fRes && fRes.data) {
+                    state.feedbacks = fRes.data;
+                    localStorage.setItem('portal_feedbacks', JSON.stringify(state.feedbacks));
+                }
+
+                renderSessions();
             } catch (err) {
-                console.error("Error fetching Supabase data:", err);
+                console.warn("Supabase background fetch fallback or timed out:", err);
             }
         }
 
-        // POPULATE STATES SELECT LIST
         function populateStatesDropdown() {
             const selects = [document.getElementById('voterState'), document.getElementById('fbState')];
             selects.forEach(select => {
@@ -497,7 +504,6 @@
             });
         }
 
-        // RENDER SESSION CARDS
         function renderSessions() {
             const pinnedContainer = document.getElementById('pinnedContainer');
             const unpinnedContainer = document.getElementById('unpinnedContainer');
@@ -512,7 +518,7 @@
             document.getElementById('unpinnedCount').textContent = `${unpinnedSessions.length} Active`;
 
             if(pinnedSessions.length === 0) {
-                pinnedContainer.innerHTML = `<p class="text-xs text-slate-400 italic">No pinned sessions currently pinned to top.</p>`;
+                pinnedContainer.innerHTML = `<p class="text-xs text-slate-400 italic">No pinned sessions available.</p>`;
             } else {
                 pinnedSessions.forEach(session => pinnedContainer.appendChild(createSessionCard(session)));
             }
@@ -523,7 +529,7 @@
                 unpinnedSessions.forEach(session => unpinnedContainer.appendChild(createSessionCard(session)));
             }
 
-            lucide.createIcons();
+            if(window.lucide) lucide.createIcons();
         }
 
         function createSessionCard(session) {
@@ -542,7 +548,7 @@
 
             const adminMenuHtml = state.isAdminLoggedIn ? `
                 <div class="relative">
-                    <button onclick="toggleCardMenu(event, '${session.id}')" class="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors" title="Admin Options">
+                    <button onclick="toggleCardMenu(event, '${session.id}')" class="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors">
                         <i data-lucide="more-vertical" class="w-5 h-5"></i>
                     </button>
                     <div id="menu-${session.id}" class="hidden absolute right-0 top-8 bg-white border border-slate-200 shadow-xl rounded-lg py-1 w-40 z-30 text-xs font-medium">
@@ -600,30 +606,32 @@
             document.querySelectorAll('[id^="menu-"]').forEach(m => m.classList.add('hidden'));
         }
 
-        // PIN/UNPIN SESSION SUPABASE UPDATE
         async function togglePinSession(id) {
             if(!state.isAdminLoggedIn) return;
             const sess = state.sessions.find(s => s.id === id);
             if(sess) {
                 sess.pinned = !sess.pinned;
-                await supabase.from('sessions').update({ pinned: sess.pinned }).eq('id', id);
+                localStorage.setItem('portal_sessions', JSON.stringify(state.sessions));
                 renderSessions();
+                if(supabase) await supabase.from('sessions').update({ pinned: sess.pinned }).eq('id', id);
             }
         }
 
-        // DELETE SESSION SUPABASE UPDATE
         async function deleteSession(id) {
             if(!state.isAdminLoggedIn) return;
-            if(confirm('Are you sure you want to delete this session? All associated votes for this session will also be deleted.')) {
+            if(confirm('Are you sure you want to delete this session?')) {
                 state.sessions = state.sessions.filter(s => s.id !== id);
                 state.votes = state.votes.filter(v => v.sessionId !== id);
-                await supabase.from('sessions').delete().eq('id', id);
-                await supabase.from('votes').delete().eq('sessionId', id);
+                localStorage.setItem('portal_sessions', JSON.stringify(state.sessions));
+                localStorage.setItem('portal_votes', JSON.stringify(state.votes));
                 renderSessions();
+                if(supabase) {
+                    await supabase.from('sessions').delete().eq('id', id);
+                    await supabase.from('votes').delete().eq('sessionId', id);
+                }
             }
         }
 
-        // DRAG & DROP REORDER LOGIC
         let draggedId = null;
         function handleDragStart(e) {
             draggedId = this.dataset.id;
@@ -644,10 +652,13 @@
                     state.sessions[idx1].order = state.sessions[idx2].order;
                     state.sessions[idx2].order = temp;
 
-                    await supabase.from('sessions').update({ order: state.sessions[idx1].order }).eq('id', state.sessions[idx1].id);
-                    await supabase.from('sessions').update({ order: state.sessions[idx2].order }).eq('id', state.sessions[idx2].id);
-
+                    localStorage.setItem('portal_sessions', JSON.stringify(state.sessions));
                     renderSessions();
+
+                    if(supabase) {
+                        await supabase.from('sessions').update({ order: state.sessions[idx1].order }).eq('id', state.sessions[idx1].id);
+                        await supabase.from('sessions').update({ order: state.sessions[idx2].order }).eq('id', state.sessions[idx2].id);
+                    }
                 }
             }
             return false;
@@ -665,15 +676,17 @@
                 s1.order = s2.order;
                 s2.order = tempOrder;
 
-                await supabase.from('sessions').update({ order: s1.order }).eq('id', s1.id);
-                await supabase.from('sessions').update({ order: s2.order }).eq('id', s2.id);
-
                 state.sessions.sort((a,b) => a.order - b.order);
+                localStorage.setItem('portal_sessions', JSON.stringify(state.sessions));
                 renderSessions();
+
+                if(supabase) {
+                    await supabase.from('sessions').update({ order: s1.order }).eq('id', s1.id);
+                    await supabase.from('sessions').update({ order: s2.order }).eq('id', s2.id);
+                }
             }
         }
 
-        // ADMIN CONTROLS
         function openAdminModal() {
             document.getElementById('adminLoginModal').classList.remove('hidden');
             if(state.isAdminLoggedIn) {
@@ -712,7 +725,6 @@
             renderSessions();
         }
 
-        // USER FEEDBACK SUBMISSION TO SUPABASE
         function openFeedbackModal() {
             document.getElementById('fbName').value = '';
             document.getElementById('fbState').value = '';
@@ -737,8 +749,10 @@
                 date: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })
             };
 
-            await supabase.from('feedbacks').insert([feedbackEntry]);
             state.feedbacks.push(feedbackEntry);
+            localStorage.setItem('portal_feedbacks', JSON.stringify(state.feedbacks));
+
+            if(supabase) await supabase.from('feedbacks').insert([feedbackEntry]);
 
             closeModal('feedbackModal');
             alert('Thank you! Your feedback/opinion has been submitted successfully.');
@@ -793,14 +807,15 @@
                 });
             }
 
-            lucide.createIcons();
+            if(window.lucide) lucide.createIcons();
             document.getElementById('adminFeedbackModal').classList.remove('hidden');
         }
 
         async function deleteFeedback(fbId) {
             if(confirm('Are you sure you want to delete this feedback entry?')) {
-                await supabase.from('feedbacks').delete().eq('id', fbId);
                 state.feedbacks = state.feedbacks.filter(fb => fb.id !== fbId);
+                localStorage.setItem('portal_feedbacks', JSON.stringify(state.feedbacks));
+                if(supabase) await supabase.from('feedbacks').delete().eq('id', fbId);
                 openAdminFeedbackModal();
             }
         }
@@ -857,11 +872,14 @@
                 dateAdded: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })
             };
 
-            await supabase.from('sessions').insert([newSession]);
             state.sessions.push(newSession);
+            localStorage.setItem('portal_sessions', JSON.stringify(state.sessions));
 
             renderSessions();
             closeModal('addSessionModal');
+
+            if(supabase) await supabase.from('sessions').insert([newSession]);
+
             alert('Voting session published successfully!');
         }
 
@@ -910,7 +928,6 @@
             return result;
         }
 
-        // VOTE SUBMISSION TO SUPABASE
         async function submitVote(e) {
             e.preventDefault();
             const sessionId = document.getElementById('pvSessionId').value;
@@ -938,15 +955,20 @@
                 receiptNumber: receiptNum
             };
 
-            await supabase.from('votes').insert([newVote]);
-            await supabase.from('used_receipts').insert([{ code: receiptNum }]);
-
             state.usedReceipts.push(receiptNum);
             state.votes.push(newVote);
+
+            localStorage.setItem('portal_receipts', JSON.stringify(state.usedReceipts));
+            localStorage.setItem('portal_votes', JSON.stringify(state.votes));
 
             closeModal('voteParticipateModal');
             displayReceiptModal(newVote, session.question);
             renderSessions();
+
+            if(supabase) {
+                await supabase.from('votes').insert([newVote]);
+                await supabase.from('used_receipts').insert([{ code: receiptNum }]);
+            }
         }
 
         function displayReceiptModal(vote, question) {
@@ -962,12 +984,14 @@
 
         function downloadReceiptJPG() {
             const card = document.getElementById('receiptCard');
-            html2canvas(card, { scale: 2 }).then(canvas => {
-                const link = document.createElement('a');
-                link.download = `Voting_Receipt_${document.getElementById('rcNum').textContent}.jpg`;
-                link.href = canvas.toDataURL('image/jpeg', 0.9);
-                link.click();
-            });
+            if(window.html2canvas) {
+                html2canvas(card, { scale: 2 }).then(canvas => {
+                    const link = document.createElement('a');
+                    link.download = `Voting_Receipt_${document.getElementById('rcNum').textContent}.jpg`;
+                    link.href = canvas.toDataURL('image/jpeg', 0.9);
+                    link.click();
+                });
+            }
         }
 
         function openVotingResultsModal() {
@@ -1112,10 +1136,11 @@
             }
 
             if(!state.usedReceipts.includes(val)) {
-                await supabase.from('used_receipts').insert([{ code: val }]);
                 state.usedReceipts.push(val);
+                localStorage.setItem('portal_receipts', JSON.stringify(state.usedReceipts));
                 closeModal('customReceiptModal');
                 alert('Custom Receipt Identifier code registered successfully in database.');
+                if(supabase) await supabase.from('used_receipts').insert([{ code: val }]);
             }
         }
 
