@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Public Live Voting Portal</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- html2canvas for Receipt JPG Download -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Supabase JS Client Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .drag-over { border: 2px dashed #3b82f6; }
+        @keyframes pulse-live {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+        .live-dot { animation: pulse-live 1.5s infinite; }
+    </style>
+</head>
+<body class="bg-slate-100 font-sans text-slate-800 min-h-screen flex flex-col" onclick="closeAllCardMenus(event)">
+
+    <!-- TOP HEADER -->
+    <header class="bg-slate-900 text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="bg-blue-600 text-white p-2 rounded-lg font-bold text-xl tracking-wider">VOTE</div>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight">Public Opinion & Voting Portal</h1>
+                    <p class="text-xs text-slate-400 flex items-center gap-1">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 live-dot"></span>
+                        LIVE TIME: <span id="liveClock" class="font-mono text-emerald-400">Loading...</span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Header Actions -->
+            <div class="flex items-center space-x-2 md:space-x-3">
+                <!-- Check Vote Status Button -->
+                <button onclick="openReceiptCheckModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs md:text-sm px-3 py-2 rounded-md border border-slate-700 flex items-center gap-1.5 font-medium shadow-sm">
+                    <i data-lucide="file-search" class="w-4 h-4 text-blue-400"></i> Check Vote Status
+                </button>
+                <!-- User Feedback / Opinion Button -->
+                <button onclick="openFeedbackModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs md:text-sm px-3 py-2 rounded-md font-medium shadow flex items-center gap-1">
+                    <i data-lucide="message-square-plus" class="w-4 h-4"></i> Feedback / Opinion
+                </button>
+                <!-- Admin Menu -->
+                <button onclick="openAdminModal()" class="p-2 hover:bg-slate-800 rounded-lg text-slate-300" title="Admin Menu">
+                    <i data-lucide="menu" class="w-6 h-6"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="flex-grow max-w-4xl w-full mx-auto p-4 space-y-6">
+
+        <!-- PINNED VOTING SESSIONS SECTION -->
+        <section id="pinnedSection" class="space-y-4">
+            <div class="flex items-center justify-between border-b pb-2 border-slate-300">
+                <h2 class="text-sm font-bold uppercase tracking-wider text-blue-700 flex items-center gap-1">
+                    <i data-lucide="pin" class="w-4 h-4"></i> Pinned Voting Sessions
+                </h2>
+                <span class="text-xs text-slate-500" id="pinnedCount">0 Pinned</span>
+            </div>
+            <div id="pinnedContainer" class="space-y-4">
+                <!-- Dynamic Pinned Cards Here -->
+            </div>
+        </section>
+
+        <!-- REGULAR VOTING SESSIONS SECTION -->
+        <section class="space-y-4">
+            <div class="flex items-center justify-between border-b pb-2 border-slate-300">
+                <h2 class="text-sm font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1">
+                    <i data-lucide="list" class="w-4 h-4"></i> All Active Sessions
+                </h2>
+                <span class="text-xs text-slate-500" id="unpinnedCount">0 Active</span>
+            </div>
+            <div id="unpinnedContainer" class="space-y-4">
+                <!-- Dynamic Unpinned Cards Here -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-slate-900 text-slate-400 text-center text-xs py-4 border-t border-slate-800">
+        <p>© 2026 Public Live Voting Portal | Secure & Transparent Digital Polling</p>
+    </footer>
+
+    <!-- MODAL: ADMIN LOGIN -->
+    <div id="adminLoginModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-xl shadow-2xl p-6 relative">
+            <button onclick="closeAdminModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            <h3 class="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+                <i data-lucide="shield-check" class="text-blue-600"></i> Portal Control Panel
+            </h3>
+            
+            <form id="adminLoginForm" onsubmit="handleAdminLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Username</label>
+                    <input type="text" id="adminUser" required class="w-full border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Enter Username">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Password</label>
+                    <input type="password" id="adminPass" required class="w-full border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Enter Password">
+                </div>
+                <div id="loginError" class="text-xs text-red-600 font-semibold hidden">Invalid Credentials Provided.</div>
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg shadow text-sm">
+                    Access Portal Controls
+                </button>
+            </form>
+
+            <!-- LOGGED IN ADMIN DASHBOARD MENU -->
+            <div id="adminDashboard" class="hidden space-y-3">
+                <p class="text-xs text-emerald-600 font-bold bg-emerald-50 p-2 rounded border border-emerald-200 text-center">
+                    ✓ Authenticated Admin Session Active
+                </p>
+                <button onclick="openAddSessionModal()" class="w-full bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-lg font-medium text-sm flex items-center justify-center gap-2">
+                    <i data-lucide="plus-circle" class="w-4 h-4"></i> Add Voting Session
+                </button>
+                <button onclick="openVotingResultsModal()" class="w-full bg-purple-600 hover:bg-purple-700 text-white p-3 rounded-lg font-medium text-sm flex items-center justify-center gap-2">
+                    <i data-lucide="bar-chart-3" class="w-4 h-4"></i> View Voting Results
+                </button>
+                <button onclick="openAdminFeedbackModal()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white p-3 rounded-lg font-medium text-sm flex items-center justify-center gap-2">
+                    <i data-lucide="message-square" class="w-4 h-4"></i> View User Feedbacks / Opinions
+                </button>
+                <button onclick="openCustomReceiptModal()" class="w-full bg-amber-600 hover:bg-amber-700 text-white p-3 rounded-lg font-medium text-sm flex items-center justify-center gap-2">
+                    <i data-lucide="file-plus" class="w-4 h-4"></i> Add Custom Receipt Identifier
+                </button>
+                <div class="pt-2 border-t flex gap-2">
+                    <button onclick="exportData()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs p-2 rounded border">Backup Data</button>
+                    <button onclick="adminLogout()" class="flex-1 bg-red-50 hover:bg-red-100 text-red-600 text-xs p-2 rounded border border-red-200 font-semibold">Logout</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: USER FEEDBACK / OPINION -->
+    <div id="feedbackModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white w-full max-w-lg rounded-xl shadow-2xl p-6 relative my-8">
+            <button onclick="closeModal('feedbackModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            <h3 class="text-xl font-bold text-slate-800 mb-1 flex items-center gap-2">
+                <i data-lucide="message-square-plus" class="text-emerald-600"></i> Submit Your Feedback / Opinion
+            </h3>
+            <p class="text-xs text-slate-500 mb-4">Share your feedback, suggestions, or detailed opinion with us.</p>
+
+            <form onsubmit="submitFeedback(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Your Full Name</label>
+                    <input type="text" id="fbName" required class="w-full border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="Enter your full name">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">State / Union Territory</label>
+                    <select id="fbState" required class="w-full border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                        <option value="">-- Select Region --</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Gmail / Email Address</label>
+                    <input type="email" id="fbEmail" required class="w-full border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="example@gmail.com">
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="block text-xs font-semibold text-slate-600">Your Opinion / Feedback</label>
+                        <span class="text-[10px] text-slate-400">Max: 20 Lakh Characters</span>
+                    </div>
+                    <textarea id="fbContent" required rows="5" maxlength="2000000" class="w-full border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-emerald-500 outline-none resize-y" placeholder="Type your opinion or feedback here..."></textarea>
+                </div>
+
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-lg shadow text-sm flex items-center justify-center gap-2">
+                    <i data-lucide="send" class="w-4 h-4"></i> Submit Feedback
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: ADMIN FEEDBACK VIEWER -->
+    <div id="adminFeedbackModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white w-full max-w-3xl rounded-xl shadow-2xl p-6 relative my-8 max-h-[85vh] flex flex-col">
+            <button onclick="closeModal('adminFeedbackModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            <div class="flex justify-between items-center mb-4 pr-6">
+                <h3 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                    <i data-lucide="message-square" class="text-emerald-600"></i> User Feedbacks & Opinions Records
+                </h3>
+                <span id="fbTotalBadge" class="bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-full">Total: 0</span>
+            </div>
+
+            <div id="adminFeedbackList" class="overflow-y-auto space-y-4 pr-2 flex-grow">
+                <!-- Dynamic Feedbacks Listing -->
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: ADD VOTING SESSION -->
+    <div id="addSessionModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white w-full max-w-lg rounded-xl shadow-2xl p-6 relative my-8">
+            <button onclick="closeModal('addSessionModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            <h3 class="text-lg font-bold text-slate-800 mb-4">Create New Voting Session</h3>
+            
+            <form onsubmit="saveVotingSession(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Voting Question / Title</label>
+                    <textarea id="sessionQuestion" required rows="2" class="w-full border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g., What is your favorite editing software?"></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Answer Response Type</label>
+                    <select id="sessionType" onchange="toggleOptionFields()" class="w-full border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                        <option value="options">Selectable Options (Multiple Choice)</option>
+                        <option value="typing">Text Entry Field (Typing Answer)</option>
+                    </select>
+                </div>
+
+                <!-- OPTIONS CONTAINER -->
+                <div id="optionsContainer" class="space-y-2 border p-3 rounded-lg bg-slate-50">
+                    <label class="block text-xs font-semibold text-slate-600">Define Choice Options</label>
+                    <div id="optionsList" class="space-y-2">
+                        <input type="text" class="opt-input w-full border rounded p-2 text-sm" placeholder="Option 1" required>
+                        <input type="text" class="opt-input w-full border rounded p-2 text-sm" placeholder="Option 2" required>
+                    </div>
+                    <button type="button" onclick="addOptionInput()" class="text-xs text-blue-600 hover:underline font-semibold flex items-center gap-1 pt-1">
+                        <i data-lucide="plus" class="w-3 h-3"></i> Add More Options
+                    </button>
+                </div>
+
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-lg shadow text-sm">
+                    Publish Voting Session
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: VOTE PARTICIPATION FORM -->
+    <div id="voteParticipateModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white w-full max-w-md rounded-xl shadow-2xl p-6 relative my-8">
+            <button onclick="closeModal('voteParticipateModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            <h3 class="text-lg font-bold text-slate-800 mb-1" id="pvTitle">Cast Your Vote</h3>
+            <p class="text-xs text-slate-500 mb-4" id="pvDate"></p>
+
+            <form onsubmit="submitVote(event)" class="space-y-4">
+                <input type="hidden" id="pvSessionId">
+
+                <!-- Dynamic Input Panel -->
+                <div id="pvInputPanel" class="space-y-2 border-y py-3 my-2"></div>
+
+                <!-- User Personal Info -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Your Full Name</label>
+                    <input type="text" id="voterName" required class="w-full border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Enter your complete name">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">State / Union Territory</label>
+                    <select id="voterState" required class="w-full border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                        <option value="">-- Select Region --</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg shadow text-sm flex items-center justify-center gap-2">
+                    <i data-lucide="check-circle-2" class="w-4 h-4"></i> Submit Voting Entry
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: RECEIPT DISPLAY & JPG DOWNLOAD -->
+    <div id="receiptModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white w-full max-w-md rounded-xl shadow-2xl p-6 relative my-8">
+            <button onclick="closeModal('receiptModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+
+            <!-- Printable Receipt Container -->
+            <div id="receiptCard" class="bg-white p-6 border-2 border-slate-200 rounded-lg space-y-4 text-slate-800">
+                <div class="border-b pb-3 text-center">
+                    <div class="text-xs font-bold text-blue-600 uppercase tracking-widest">OFFICIAL VOTING RECEIPT</div>
+                    <div class="text-lg font-extrabold text-slate-900 mt-0.5">PUBLIC OPINION PORTAL</div>
+                </div>
+
+                <div class="space-y-2 text-xs">
+                    <div>
+                        <span class="text-slate-500 uppercase block font-semibold">Receipt Identification Identifier:</span>
+                        <span id="rcNum" class="font-mono font-bold text-blue-700 text-sm tracking-wider"></span>
+                    </div>
+                    <div>
+                        <span class="text-slate-500 uppercase block font-semibold">Voter Full Name:</span>
+                        <span id="rcName" class="font-medium text-slate-800"></span>
+                    </div>
+                    <div>
+                        <span class="text-slate-500 uppercase block font-semibold">State / Union Territory:</span>
+                        <span id="rcState" class="font-medium text-slate-800"></span>
+                    </div>
+                    <div>
+                        <span class="text-slate-500 uppercase block font-semibold">Voting Question:</span>
+                        <span id="rcQuestion" class="font-medium text-slate-800"></span>
+                    </div>
+                    <div class="bg-slate-50 p-2.5 rounded border">
+                        <span class="text-slate-500 uppercase block font-semibold text-[10px]">Submitted Response:</span>
+                        <span id="rcAnswer" class="font-bold text-slate-900 text-sm"></span>
+                    </div>
+                    <div>
+                        <span class="text-slate-500 uppercase block font-semibold">Timestamp:</span>
+                        <span id="rcDate" class="font-mono text-slate-600"></span>
+                    </div>
+                </div>
+
+                <div class="border-t pt-3 text-center text-[10px] text-slate-400">
+                    Status: <span class="text-emerald-600 font-bold">VOTING COMPLETED</span>
+                </div>
+            </div>
+
+            <button onclick="downloadReceiptJPG()" class="w-full mt-4 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-lg shadow text-sm flex items-center justify-center gap-2">
+                <i data-lucide="download" class="w-4 h-4"></i> Download Receipt (JPG Image)
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL: VOTING RESULTS (ADMIN) -->
+    <div id="resultsModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white w-full max-w-3xl rounded-xl shadow-2xl p-6 relative my-8 max-h-[85vh] flex flex-col">
+            <button onclick="closeModal('resultsModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            <h3 class="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+                <i data-lucide="bar-chart" class="text-purple-600"></i> Voting Session Records & Analytics
+            </h3>
+
+            <div id="resultsList" class="overflow-y-auto space-y-6 pr-2 flex-grow">
+                <!-- Dynamic Results Cards -->
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: CHECK VOTE STATUS -->
+    <div id="receiptCheckModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-xl shadow-2xl p-6 relative">
+            <button onclick="closeModal('receiptCheckModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            <h3 class="text-lg font-bold text-slate-800 mb-2 flex items-center gap-2">
+                <i data-lucide="file-search" class="text-blue-600"></i> Check Vote Status
+            </h3>
+            <p class="text-xs text-slate-500 mb-4">Enter your 17-digit receipt identification code to verify and view vote status.</p>
+
+            <div class="space-y-3">
+                <input type="text" id="checkRcInput" maxlength="17" placeholder="Enter 17-Digit Identifier Code" class="w-full border rounded-lg p-2.5 font-mono text-sm uppercase focus:ring-2 focus:ring-blue-500 outline-none">
+                <button onclick="processReceiptRankCheck()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg shadow text-sm">
+                    Verify & Check Status
+                </button>
+            </div>
+
+            <!-- Display Results -->
+            <div id="rankDisplayArea" class="mt-4 border-t pt-4 hidden space-y-3"></div>
+        </div>
+    </div>
+
+    <!-- MODAL: ADD CUSTOM RECEIPT IDENTIFIER (ADMIN) -->
+    <div id="customReceiptModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-xl shadow-2xl p-6 relative">
+            <button onclick="closeModal('customReceiptModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            <h3 class="text-lg font-bold text-slate-800 mb-2">Add Custom Receipt Identifier</h3>
+            <p class="text-xs text-slate-500 mb-4">Reserve or register a specific 17-character alphanumeric receipt identification code into database.</p>
+
+            <form onsubmit="saveCustomReceiptIdentifier(event)" class="space-y-3">
+                <div>
+                    <input type="text" id="customRcInput" maxlength="17" required placeholder="e.g., A1B2C3D4E5F6G7H8J" class="w-full border rounded-lg p-2.5 font-mono text-sm uppercase focus:ring-2 focus:ring-blue-500 outline-none" oninput="validateCustomReceiptInput(this)">
+                    <p id="customRcError" class="text-xs font-semibold text-red-600 mt-1 hidden">Already Registered - Already In System Database</p>
+                </div>
+                <button type="submit" id="saveRcBtn" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold py-2.5 rounded-lg shadow text-sm">
+                    Register Receipt Code
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT & SUPABASE INTEGRATION -->
+    <script>
+        // SUPABASE CREDENTIALS INTEGRATION
+        const SUPABASE_URL = "https://zxqxykntmndfkvzhathf.supabase.co";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp4cXh5a250bW5kZmt2emhhdGhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA2MzYxOTEsImV4cCI6MjEwNjIxMjE5MX0.3d7Mf2kH7UxirCA9wvqnho-XxsowGZTAw7DZxxyEoUg";
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // ADMIN CREDENTIALS
+        const ADMIN_USER = "VOTE";
+        const ADMIN_PASS = "VOTECJP#KERALAM";
+
+        // INDIA STATES & UNION TERRITORIES
+        const INDIAN_REGIONS = [
+            "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", 
+            "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Keralam", "Madhya Pradesh", 
+            "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", 
+            "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", 
+            "West Bengal", "Andaman and Nicobar Islands", "Chandigarh", "Dadra and Nagar Haveli and Daman and Diu", 
+            "Delhi (NCT)", "Jammu and Kashmir", "Ladakh", "Lakshadweep", "Puducherry"
+        ];
+
+        // STATE MANAGEMENT
+        let state = {
+            isAdminLoggedIn: false,
+            sessions: [],
+            votes: [],
+            usedReceipts: [],
+            feedbacks: []
+        };
+
+        // INITIALIZATION
+        window.addEventListener('DOMContentLoaded', async () => {
+            initLiveClock();
+            populateStatesDropdown();
+            await fetchSupabaseData();
+            renderSessions();
+            lucide.createIcons();
+        });
+
+        // LIVE REAL-TIME CLOCK
+        function initLiveClock() {
+            function update() {
+                const now = new Date();
+                const clock = document.getElementById('liveClock');
+                if(clock) {
+                    clock.textContent = now.toLocaleString('en-IN', { 
+                        timeZone: 'Asia/Kolkata',
+                        dateStyle: 'medium',
+                        timeStyle: 'medium'
+                    });
+                }
+            }
+            update();
+            setInterval(update, 1000);
+        }
+
+        // FETCH ALL DATA FROM SUPABASE DATABASE
+        async function fetchSupabaseData() {
+            try {
+                const [sRes, vRes, rRes, fRes] = await Promise.all([
+                    supabase.from('sessions').select('*'),
+                    supabase.from('votes').select('*'),
+                    supabase.from('used_receipts').select('*'),
+                    supabase.from('feedbacks').select('*')
+                ]);
+
+                if (sRes.data) state.sessions = sRes.data;
+                if (vRes.data) state.votes = vRes.data;
+                if (rRes.data) state.usedReceipts = rRes.data.map(r => r.code);
+                if (fRes.data) state.feedbacks = fRes.data;
+
+                // Add initial session if database is empty
+                if(state.sessions.length === 0) {
+                    const initSess = {
+                        id: 'sess_' + Date.now(),
+                        question: "Are you interested in Video Editing & Content Creation?",
+                        type: "options",
+                        options: ["Yes", "No"],
+                        pinned: true,
+                        order: 1,
+                        dateAdded: new Date().toLocaleString()
+                    };
+                    await supabase.from('sessions').insert([initSess]);
+                    state.sessions = [initSess];
+                }
+            } catch (err) {
+                console.error("Error fetching Supabase data:", err);
+            }
+        }
+
+        // POPULATE STATES SELECT LIST
+        function populateStatesDropdown() {
+            const selects = [document.getElementById('voterState'), document.getElementById('fbState')];
+            selects.forEach(select => {
+                if(!select) return;
+                select.innerHTML = '<option value="">-- Select Region --</option>';
+                INDIAN_REGIONS.forEach(reg => {
+                    const opt = document.createElement('option');
+                    opt.value = reg;
+                    opt.textContent = reg;
+                    select.appendChild(opt);
+                });
+            });
+        }
+
+        // RENDER SESSION CARDS
+        function renderSessions() {
+            const pinnedContainer = document.getElementById('pinnedContainer');
+            const unpinnedContainer = document.getElementById('unpinnedContainer');
+
+            pinnedContainer.innerHTML = '';
+            unpinnedContainer.innerHTML = '';
+
+            const pinnedSessions = state.sessions.filter(s => s.pinned).sort((a,b) => a.order - b.order);
+            const unpinnedSessions = state.sessions.filter(s => !s.pinned).sort((a,b) => a.order - b.order);
+
+            document.getElementById('pinnedCount').textContent = `${pinnedSessions.length} Pinned`;
+            document.getElementById('unpinnedCount').textContent = `${unpinnedSessions.length} Active`;
+
+            if(pinnedSessions.length === 0) {
+                pinnedContainer.innerHTML = `<p class="text-xs text-slate-400 italic">No pinned sessions currently pinned to top.</p>`;
+            } else {
+                pinnedSessions.forEach(session => pinnedContainer.appendChild(createSessionCard(session)));
+            }
+
+            if(unpinnedSessions.length === 0) {
+                unpinnedContainer.innerHTML = `<p class="text-xs text-slate-400 italic">No unpinned sessions available.</p>`;
+            } else {
+                unpinnedSessions.forEach(session => unpinnedContainer.appendChild(createSessionCard(session)));
+            }
+
+            lucide.createIcons();
+        }
+
+        function createSessionCard(session) {
+            const voteCount = state.votes.filter(v => v.sessionId === session.id).length;
+            const card = document.createElement('div');
+            card.className = "bg-white border rounded-xl p-4 shadow-sm hover:shadow-md transition-all relative flex flex-col justify-between";
+            card.draggable = state.isAdminLoggedIn;
+            card.dataset.id = session.id;
+
+            if(state.isAdminLoggedIn) {
+                card.classList.add('cursor-grab');
+                card.addEventListener('dragstart', handleDragStart);
+                card.addEventListener('dragover', handleDragOver);
+                card.addEventListener('drop', handleDrop);
+            }
+
+            const adminMenuHtml = state.isAdminLoggedIn ? `
+                <div class="relative">
+                    <button onclick="toggleCardMenu(event, '${session.id}')" class="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors" title="Admin Options">
+                        <i data-lucide="more-vertical" class="w-5 h-5"></i>
+                    </button>
+                    <div id="menu-${session.id}" class="hidden absolute right-0 top-8 bg-white border border-slate-200 shadow-xl rounded-lg py-1 w-40 z-30 text-xs font-medium">
+                        <button onclick="togglePinSession('${session.id}')" class="w-full text-left px-3 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-700">
+                            <i data-lucide="pin" class="w-3.5 h-3.5 ${session.pinned ? 'text-blue-600' : 'text-slate-400'}"></i> ${session.pinned ? 'Unpin Session' : 'Pin Session'}
+                        </button>
+                        <button onclick="moveSessionOrder('${session.id}', 'up')" class="w-full text-left px-3 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-700">
+                            <i data-lucide="arrow-up" class="w-3.5 h-3.5 text-slate-400"></i> Move Up
+                        </button>
+                        <button onclick="moveSessionOrder('${session.id}', 'down')" class="w-full text-left px-3 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-700">
+                            <i data-lucide="arrow-down" class="w-3.5 h-3.5 text-slate-400"></i> Move Down
+                        </button>
+                        <div class="border-t my-1 border-slate-100"></div>
+                        <button onclick="deleteSession('${session.id}')" class="w-full text-left px-3 py-2 hover:bg-red-50 text-red-600 flex items-center gap-2 font-semibold">
+                            <i data-lucide="trash-2" class="w-3.5 h-3.5 text-red-500"></i> Delete Session
+                        </button>
+                    </div>
+                </div>
+            ` : '';
+
+            card.innerHTML = `
+                <div>
+                    <div class="flex justify-between items-start gap-2 mb-2">
+                        <div class="text-[11px] font-semibold text-slate-400 flex items-center gap-1">
+                            <i data-lucide="calendar" class="w-3 h-3"></i> Added: ${session.dateAdded}
+                        </div>
+                        ${adminMenuHtml}
+                    </div>
+
+                    <h3 class="font-bold text-slate-800 text-base md:text-lg mb-2">${session.question}</h3>
+                </div>
+
+                <div class="mt-4 pt-3 border-t flex items-center justify-between">
+                    <span class="text-xs text-slate-500 font-medium">
+                        Total Votes: <strong class="text-blue-600 font-bold">${voteCount}</strong>
+                    </span>
+                    <button onclick="openParticipateModal('${session.id}')" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2 rounded-lg shadow-sm flex items-center gap-1.5">
+                        Participate In Voting <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                    </button>
+                </div>
+            `;
+            return card;
+        }
+
+        function toggleCardMenu(event, id) {
+            event.stopPropagation();
+            const menu = document.getElementById(`menu-${id}`);
+            document.querySelectorAll('[id^="menu-"]').forEach(m => {
+                if(m.id !== `menu-${id}`) m.classList.add('hidden');
+            });
+            if(menu) menu.classList.toggle('hidden');
+        }
+
+        function closeAllCardMenus(event) {
+            document.querySelectorAll('[id^="menu-"]').forEach(m => m.classList.add('hidden'));
+        }
+
+        // PIN/UNPIN SESSION SUPABASE UPDATE
+        async function togglePinSession(id) {
+            if(!state.isAdminLoggedIn) return;
+            const sess = state.sessions.find(s => s.id === id);
+            if(sess) {
+                sess.pinned = !sess.pinned;
+                await supabase.from('sessions').update({ pinned: sess.pinned }).eq('id', id);
+                renderSessions();
+            }
+        }
+
+        // DELETE SESSION SUPABASE UPDATE
+        async function deleteSession(id) {
+            if(!state.isAdminLoggedIn) return;
+            if(confirm('Are you sure you want to delete this session? All associated votes for this session will also be deleted.')) {
+                state.sessions = state.sessions.filter(s => s.id !== id);
+                state.votes = state.votes.filter(v => v.sessionId !== id);
+                await supabase.from('sessions').delete().eq('id', id);
+                await supabase.from('votes').delete().eq('sessionId', id);
+                renderSessions();
+            }
+        }
+
+        // DRAG & DROP REORDER LOGIC
+        let draggedId = null;
+        function handleDragStart(e) {
+            draggedId = this.dataset.id;
+            e.dataTransfer.effectAllowed = 'move';
+        }
+        function handleDragOver(e) {
+            if (e.preventDefault) e.preventDefault();
+            return false;
+        }
+        async function handleDrop(e) {
+            e.stopPropagation();
+            const targetId = this.dataset.id;
+            if(draggedId && targetId && draggedId !== targetId) {
+                const idx1 = state.sessions.findIndex(s => s.id === draggedId);
+                const idx2 = state.sessions.findIndex(s => s.id === targetId);
+                if(idx1 > -1 && idx2 > -1) {
+                    const temp = state.sessions[idx1].order;
+                    state.sessions[idx1].order = state.sessions[idx2].order;
+                    state.sessions[idx2].order = temp;
+
+                    await supabase.from('sessions').update({ order: state.sessions[idx1].order }).eq('id', state.sessions[idx1].id);
+                    await supabase.from('sessions').update({ order: state.sessions[idx2].order }).eq('id', state.sessions[idx2].id);
+
+                    renderSessions();
+                }
+            }
+            return false;
+        }
+
+        async function moveSessionOrder(id, dir) {
+            const idx = state.sessions.findIndex(s => s.id === id);
+            if(idx === -1) return;
+            const targetIdx = dir === 'up' ? idx - 1 : idx + 1;
+            if(targetIdx >= 0 && targetIdx < state.sessions.length) {
+                const s1 = state.sessions[idx];
+                const s2 = state.sessions[targetIdx];
+                
+                const tempOrder = s1.order;
+                s1.order = s2.order;
+                s2.order = tempOrder;
+
+                await supabase.from('sessions').update({ order: s1.order }).eq('id', s1.id);
+                await supabase.from('sessions').update({ order: s2.order }).eq('id', s2.id);
+
+                state.sessions.sort((a,b) => a.order - b.order);
+                renderSessions();
+            }
+        }
+
+        // ADMIN CONTROLS
+        function openAdminModal() {
+            document.getElementById('adminLoginModal').classList.remove('hidden');
+            if(state.isAdminLoggedIn) {
+                document.getElementById('adminLoginForm').classList.add('hidden');
+                document.getElementById('adminDashboard').classList.remove('hidden');
+            } else {
+                document.getElementById('adminLoginForm').classList.remove('hidden');
+                document.getElementById('adminDashboard').classList.add('hidden');
+            }
+        }
+
+        function closeAdminModal() {
+            document.getElementById('adminLoginModal').classList.add('hidden');
+        }
+
+        function handleAdminLogin(e) {
+            e.preventDefault();
+            const u = document.getElementById('adminUser').value;
+            const p = document.getElementById('adminPass').value;
+            const err = document.getElementById('loginError');
+
+            if(u === ADMIN_USER && p === ADMIN_PASS) {
+                state.isAdminLoggedIn = true;
+                err.classList.add('hidden');
+                document.getElementById('adminLoginForm').classList.add('hidden');
+                document.getElementById('adminDashboard').classList.remove('hidden');
+                renderSessions();
+            } else {
+                err.classList.remove('hidden');
+            }
+        }
+
+        function adminLogout() {
+            state.isAdminLoggedIn = false;
+            closeAdminModal();
+            renderSessions();
+        }
+
+        // USER FEEDBACK SUBMISSION TO SUPABASE
+        function openFeedbackModal() {
+            document.getElementById('fbName').value = '';
+            document.getElementById('fbState').value = '';
+            document.getElementById('fbEmail').value = '';
+            document.getElementById('fbContent').value = '';
+            document.getElementById('feedbackModal').classList.remove('hidden');
+        }
+
+        async function submitFeedback(e) {
+            e.preventDefault();
+            const name = document.getElementById('fbName').value.trim();
+            const userState = document.getElementById('fbState').value;
+            const email = document.getElementById('fbEmail').value.trim();
+            const content = document.getElementById('fbContent').value.trim();
+
+            const feedbackEntry = {
+                id: 'fb_' + Date.now(),
+                name,
+                state: userState,
+                email,
+                content,
+                date: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })
+            };
+
+            await supabase.from('feedbacks').insert([feedbackEntry]);
+            state.feedbacks.push(feedbackEntry);
+
+            closeModal('feedbackModal');
+            alert('Thank you! Your feedback/opinion has been submitted successfully.');
+        }
+
+        function openAdminFeedbackModal() {
+            closeAdminModal();
+            const list = document.getElementById('adminFeedbackList');
+            const badge = document.getElementById('fbTotalBadge');
+            list.innerHTML = '';
+
+            const feedbacks = state.feedbacks || [];
+            badge.textContent = `Total: ${feedbacks.length}`;
+
+            if (feedbacks.length === 0) {
+                list.innerHTML = `
+                    <div class="text-center py-12 border-2 border-dashed rounded-xl bg-slate-50">
+                        <i data-lucide="message-square" class="w-12 h-12 text-slate-300 mx-auto mb-2"></i>
+                        <p class="text-sm font-semibold text-slate-500">No feedbacks or opinions submitted yet.</p>
+                    </div>
+                `;
+            } else {
+                const sortedFeedbacks = [...feedbacks].reverse();
+                sortedFeedbacks.forEach(fb => {
+                    const card = document.createElement('div');
+                    card.className = "bg-white border rounded-xl p-4 shadow-sm space-y-3 relative";
+                    card.innerHTML = `
+                        <div class="flex justify-between items-start border-b pb-2">
+                            <div>
+                                <h4 class="font-bold text-slate-900 text-base">${fb.name}</h4>
+                                <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500 mt-0.5">
+                                    <span class="bg-slate-100 text-slate-700 font-medium px-2 py-0.5 rounded border flex items-center gap-1">
+                                        <i data-lucide="map-pin" class="w-3 h-3 text-red-500"></i> ${fb.state}
+                                    </span>
+                                    <span class="bg-blue-50 text-blue-700 font-medium px-2 py-0.5 rounded border flex items-center gap-1">
+                                        <i data-lucide="mail" class="w-3 h-3 text-blue-500"></i> ${fb.email}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-[11px] font-mono text-slate-400">${fb.date}</span>
+                                <button onclick="deleteFeedback('${fb.id}')" class="text-slate-400 hover:text-red-600 p-1 rounded-lg hover:bg-red-50 transition-colors" title="Delete Feedback">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="bg-slate-50 p-3 rounded-lg border text-sm text-slate-800 whitespace-pre-wrap leading-relaxed">
+                            ${fb.content}
+                        </div>
+                    `;
+                    list.appendChild(card);
+                });
+            }
+
+            lucide.createIcons();
+            document.getElementById('adminFeedbackModal').classList.remove('hidden');
+        }
+
+        async function deleteFeedback(fbId) {
+            if(confirm('Are you sure you want to delete this feedback entry?')) {
+                await supabase.from('feedbacks').delete().eq('id', fbId);
+                state.feedbacks = state.feedbacks.filter(fb => fb.id !== fbId);
+                openAdminFeedbackModal();
+            }
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+
+        function openAddSessionModal() {
+            closeAdminModal();
+            document.getElementById('addSessionModal').classList.remove('hidden');
+        }
+
+        function toggleOptionFields() {
+            const type = document.getElementById('sessionType').value;
+            const container = document.getElementById('optionsContainer');
+            if(type === 'typing') {
+                container.classList.add('hidden');
+            } else {
+                container.classList.remove('hidden');
+            }
+        }
+
+        function addOptionInput() {
+            const list = document.getElementById('optionsList');
+            const input = document.createElement('input');
+            input.type = "text";
+            input.className = "opt-input w-full border rounded p-2 text-sm";
+            input.placeholder = `Option ${list.children.length + 1}`;
+            input.required = true;
+            list.appendChild(input);
+        }
+
+        async function saveVotingSession(e) {
+            e.preventDefault();
+            const question = document.getElementById('sessionQuestion').value;
+            const type = document.getElementById('sessionType').value;
+            let options = [];
+
+            if(type === 'options') {
+                const inputs = document.querySelectorAll('.opt-input');
+                inputs.forEach(inp => {
+                    if(inp.value.trim()) options.push(inp.value.trim());
+                });
+            }
+
+            const newSession = {
+                id: 'sess_' + Date.now(),
+                question,
+                type,
+                options,
+                pinned: false,
+                order: state.sessions.length + 1,
+                dateAdded: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })
+            };
+
+            await supabase.from('sessions').insert([newSession]);
+            state.sessions.push(newSession);
+
+            renderSessions();
+            closeModal('addSessionModal');
+            alert('Voting session published successfully!');
+        }
+
+        function openParticipateModal(sessionId) {
+            const session = state.sessions.find(s => s.id === sessionId);
+            if(!session) return;
+
+            document.getElementById('pvSessionId').value = session.id;
+            document.getElementById('pvTitle').textContent = session.question;
+            document.getElementById('pvDate').textContent = `Session Added: ${session.dateAdded}`;
+
+            const panel = document.getElementById('pvInputPanel');
+            panel.innerHTML = '';
+
+            if(session.type === 'typing') {
+                panel.innerHTML = `
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Your Written Answer Response</label>
+                    <textarea id="pvAnswerText" required rows="3" class="w-full border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Please Type Your Answer"></textarea>
+                `;
+            } else {
+                let optsHtml = `<label class="block text-xs font-semibold text-slate-600 mb-1">Select One Choice Option</label><div class="space-y-2">`;
+                session.options.forEach((opt, idx) => {
+                    optsHtml += `
+                        <label class="flex items-center gap-2 p-2.5 border rounded-lg hover:bg-slate-50 cursor-pointer">
+                            <input type="radio" name="pvOption" value="${opt}" ${idx === 0 ? 'checked' : ''} class="text-blue-600 focus:ring-blue-500">
+                            <span class="text-sm font-medium text-slate-700">${opt}</span>
+                        </label>
+                    `;
+                });
+                optsHtml += `</div>`;
+                panel.innerHTML = optsHtml;
+            }
+
+            document.getElementById('voteParticipateModal').classList.remove('hidden');
+        }
+
+        function generateUnique17DigitReceipt() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let result = '';
+            do {
+                result = '';
+                for (let i = 0; i < 17; i++) {
+                    result += chars.charAt(Math.floor(Math.random() * chars.length));
+                }
+            } while (state.usedReceipts.includes(result));
+            return result;
+        }
+
+        // VOTE SUBMISSION TO SUPABASE
+        async function submitVote(e) {
+            e.preventDefault();
+            const sessionId = document.getElementById('pvSessionId').value;
+            const session = state.sessions.find(s => s.id === sessionId);
+            const voterName = document.getElementById('voterName').value;
+            const voterState = document.getElementById('voterState').value;
+
+            let answer = '';
+            if(session.type === 'typing') {
+                answer = document.getElementById('pvAnswerText').value;
+            } else {
+                const checked = document.querySelector('input[name="pvOption"]:checked');
+                answer = checked ? checked.value : '';
+            }
+
+            const receiptNum = generateUnique17DigitReceipt();
+
+            const newVote = {
+                id: 'vote_' + Date.now(),
+                sessionId,
+                voterName,
+                voterState,
+                answer,
+                date: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
+                receiptNumber: receiptNum
+            };
+
+            await supabase.from('votes').insert([newVote]);
+            await supabase.from('used_receipts').insert([{ code: receiptNum }]);
+
+            state.usedReceipts.push(receiptNum);
+            state.votes.push(newVote);
+
+            closeModal('voteParticipateModal');
+            displayReceiptModal(newVote, session.question);
+            renderSessions();
+        }
+
+        function displayReceiptModal(vote, question) {
+            document.getElementById('rcNum').textContent = vote.receiptNumber;
+            document.getElementById('rcName').textContent = vote.voterName;
+            document.getElementById('rcState').textContent = vote.voterState;
+            document.getElementById('rcQuestion').textContent = question;
+            document.getElementById('rcAnswer').textContent = vote.answer;
+            document.getElementById('rcDate').textContent = vote.date;
+
+            document.getElementById('receiptModal').classList.remove('hidden');
+        }
+
+        function downloadReceiptJPG() {
+            const card = document.getElementById('receiptCard');
+            html2canvas(card, { scale: 2 }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `Voting_Receipt_${document.getElementById('rcNum').textContent}.jpg`;
+                link.href = canvas.toDataURL('image/jpeg', 0.9);
+                link.click();
+            });
+        }
+
+        function openVotingResultsModal() {
+            closeAdminModal();
+            const list = document.getElementById('resultsList');
+            list.innerHTML = '';
+
+            state.sessions.forEach(session => {
+                const sessionVotes = state.votes.filter(v => v.sessionId === session.id);
+                const card = document.createElement('div');
+                card.className = "border rounded-xl p-4 bg-slate-50 space-y-3";
+
+                let votesDetailHtml = '';
+                if(sessionVotes.length === 0) {
+                    votesDetailHtml = `<p class="text-xs text-slate-400 italic p-2 bg-white rounded border">Results Voting: 0 (No responses recorded yet)</p>`;
+                } else {
+                    votesDetailHtml = `<div class="space-y-2 max-h-48 overflow-y-auto pr-1">`;
+                    sessionVotes.forEach(v => {
+                        votesDetailHtml += `
+                            <div class="bg-white p-3 rounded-lg border text-xs space-y-1">
+                                <div class="flex justify-between items-center text-slate-500 font-semibold">
+                                    <span>Voter: <strong class="text-slate-800">${v.voterName}</strong> (${v.voterState})</span>
+                                    <span class="font-mono text-[10px]">${v.date}</span>
+                                </div>
+                                <div class="text-slate-800 font-medium">
+                                    Answer: <span class="font-bold text-blue-700">${v.answer}</span>
+                                </div>
+                                <div class="text-[10px] font-mono text-slate-400">
+                                    Receipt Number: <span class="text-slate-600 font-bold">${v.receiptNumber}</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    votesDetailHtml += `</div>`;
+                }
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-start border-b pb-2">
+                        <div>
+                            <h4 class="font-bold text-slate-800 text-sm md:text-base">${session.question}</h4>
+                            <p class="text-[11px] text-slate-400">Added: ${session.dateAdded}</p>
+                        </div>
+                        <span class="bg-blue-100 text-blue-700 text-xs font-bold px-2.5 py-1 rounded-full">
+                            Total Votes: ${sessionVotes.length}
+                        </span>
+                    </div>
+                    <div>
+                        <p class="text-xs font-semibold text-slate-500 mb-1.5 uppercase">Submission Logs:</p>
+                        ${votesDetailHtml}
+                    </div>
+                `;
+                list.appendChild(card);
+            });
+
+            document.getElementById('resultsModal').classList.remove('hidden');
+        }
+
+        function openReceiptCheckModal() {
+            document.getElementById('checkRcInput').value = '';
+            document.getElementById('rankDisplayArea').classList.add('hidden');
+            document.getElementById('receiptCheckModal').classList.remove('hidden');
+        }
+
+        function processReceiptRankCheck() {
+            const code = document.getElementById('checkRcInput').value.trim().toUpperCase();
+            const display = document.getElementById('rankDisplayArea');
+            display.classList.remove('hidden');
+
+            const vote = state.votes.find(v => v.receiptNumber === code);
+            if(!vote) {
+                display.innerHTML = `<p class="text-xs text-red-600 font-bold text-center">Invalid or Unrecognized Receipt Identifier.</p>`;
+                return;
+            }
+
+            const session = state.sessions.find(s => s.id === vote.sessionId);
+            if(!session) return;
+
+            if(session.type === 'typing') {
+                display.innerHTML = `
+                    <div class="text-xs space-y-1 bg-slate-50 p-3 rounded border">
+                        <p class="text-slate-500">Question: <strong class="text-slate-800">${session.question}</strong></p>
+                        <p class="text-slate-500">Your Submitted Answer: <strong class="text-blue-700">${vote.answer}</strong></p>
+                        <p class="text-[11px] text-amber-600 font-semibold pt-1 border-t mt-1">Ranking statistics are available for Multiple Choice Option votes only.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const sessionVotes = state.votes.filter(v => v.sessionId === session.id);
+            const optionCounts = {};
+            session.options.forEach(opt => optionCounts[opt] = 0);
+            sessionVotes.forEach(v => {
+                if(optionCounts[v.answer] !== undefined) optionCounts[v.answer]++;
+            });
+
+            const rankedOptions = Object.keys(optionCounts).sort((a,b) => optionCounts[b] - optionCounts[a]);
+            const userOptionRank = rankedOptions.indexOf(vote.answer) + 1;
+            const userOptionVotes = optionCounts[vote.answer];
+
+            display.innerHTML = `
+                <div class="text-xs space-y-2 bg-slate-50 p-3 rounded border">
+                    <p class="text-slate-500">Question: <strong class="text-slate-800">${session.question}</strong></p>
+                    <p class="text-slate-500">Your Choice Selected: <strong class="text-blue-700">${vote.answer}</strong></p>
+                    <div class="bg-blue-50 border border-blue-200 p-2.5 rounded-lg text-center space-y-1">
+                        <p class="text-xs font-bold text-blue-800">Your Choice Statistics</p>
+                        <p class="text-sm font-extrabold text-blue-900">Total Votes: ${userOptionVotes}</p>
+                        <p class="text-xs font-semibold text-emerald-700">Rank Placement: #${userOptionRank} out of ${session.options.length} Options</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function openCustomReceiptModal() {
+            closeAdminModal();
+            document.getElementById('customRcInput').value = '';
+            document.getElementById('customRcError').classList.add('hidden');
+            document.getElementById('customReceiptModal').classList.remove('hidden');
+        }
+
+        function validateCustomReceiptInput(input) {
+            const val = input.value.trim().toUpperCase();
+            const err = document.getElementById('customRcError');
+            const saveBtn = document.getElementById('saveRcBtn');
+
+            if(state.usedReceipts.includes(val)) {
+                err.classList.remove('hidden');
+                saveBtn.disabled = true;
+                saveBtn.classList.add('opacity-50');
+            } else {
+                err.classList.add('hidden');
+                saveBtn.disabled = false;
+                saveBtn.classList.remove('opacity-50');
+            }
+        }
+
+        async function saveCustomReceiptIdentifier(e) {
+            e.preventDefault();
+            const val = document.getElementById('customRcInput').value.trim().toUpperCase();
+            if(val.length !== 17) {
+                alert('Receipt Identifier must be exactly 17 characters long.');
+                return;
+            }
+
+            if(!state.usedReceipts.includes(val)) {
+                await supabase.from('used_receipts').insert([{ code: val }]);
+                state.usedReceipts.push(val);
+                closeModal('customReceiptModal');
+                alert('Custom Receipt Identifier code registered successfully in database.');
+            }
+        }
+
+        function exportData() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state));
+            const dlAnchor = document.createElement('a');
+            dlAnchor.setAttribute("href", dataStr);
+            dlAnchor.setAttribute("download", `voting_portal_backup_${Date.now()}.json`);
+            document.body.appendChild(dlAnchor);
+            dlAnchor.click();
+            dlAnchor.remove();
+        }
+    </script>
+</body>
+</html>
